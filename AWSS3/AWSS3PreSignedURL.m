@@ -262,6 +262,10 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
     }] continueWithSuccessBlock:^id _Nullable(AWSTask * _Nonnull task) {
         //generate baseURL String (use virtualHostStyle if possible)
         //base url is not url encoded.
+        
+        //generate port number here, if localtest is false, port number will not set to endpoint by default
+        NSString *portNumber = endpoint.portNumber != nil ? [NSString stringWithFormat:@":%@", endpoint.portNumber.stringValue]: @"";
+        
         NSString *keyPath = nil;
         if (bucketName == nil) {
             keyPath = (keyName == nil ? @"" : [NSString stringWithFormat:@"%@", [keyName aws_stringWithURLEncodingPath]]);
@@ -269,19 +273,23 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
             keyPath = (keyName == nil ? [NSString stringWithFormat:@"%@", bucketName] : [NSString stringWithFormat:@"%@/%@", bucketName, [keyName aws_stringWithURLEncodingPath]]);
         }
 
-        //generate correct hostName (use virtualHostStyle if possible)
+        //generate correct hostName (disabled virtualHostStyle here for minio server)
         NSString *host = nil;
         if (!self.configuration.localTestingEnabled &&
             bucketName) {
-            if (isAccelerateModeEnabled) {
-                host = [NSString stringWithFormat:@"%@.%@", bucketName, AWSS3PreSignedURLBuilderAcceleratedEndpoint];
-            } else {
-                host = [NSString stringWithFormat:@"%@.%@", bucketName, endpoint.hostName];
-            }
+            host = [NSString stringWithFormat:@"%@/%@", endpoint.hostName, bucketName];
+            [getPreSignedURLRequest setValue:host forRequestHeader:@"host"];
         } else {
             host = endpoint.hostName;
         }
-        [getPreSignedURLRequest setValue:host forRequestHeader:@"host"];
+        
+        if (endpoint.portNumber)
+        {
+            [getPreSignedURLRequest setValue:[NSString stringWithFormat:@"%@%@", host, portNumber] forRequestHeader:@"host"];
+        } else
+        {
+            [getPreSignedURLRequest setValue:host forRequestHeader:@"host"];
+        }
         
         //If this is a presigned request for a multipart upload, set the uploadID and partNumber on the request.
         if (getPreSignedURLRequest.uploadID
@@ -293,7 +301,7 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
             [getPreSignedURLRequest setValue:[NSString stringWithFormat:@"%@", getPreSignedURLRequest.partNumber]
                          forRequestParameter:@"partNumber"];
         }
-        NSString *portNumber = endpoint.portNumber != nil ? [NSString stringWithFormat:@":%@", endpoint.portNumber.stringValue]: @"";
+        
         AWSEndpoint *newEndpoint = [[AWSEndpoint alloc]initWithRegion:configuration.regionType service:AWSServiceS3 URL:[NSURL URLWithString:[NSString stringWithFormat:@"%@://%@%@", endpoint.useUnsafeURL?@"http":@"https", host, portNumber]]];
         
         int32_t expireDuration = [expires timeIntervalSinceNow];
