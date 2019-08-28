@@ -207,7 +207,8 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
         }
 
         // Validates the buket name for transfer acceleration.
-        if (isAccelerateModeEnabled && ![bucketName aws_isVirtualHostedStyleCompliant]) {
+        // Warning: avoid using `accelerateModeEnabled` because minio server don't have it.
+        if (isAccelerateModeEnabled) {
             return [AWSTask taskWithError:[NSError errorWithDomain:AWSS3PresignedURLErrorDomain
                                                               code:AWSS3PresignedURLErrorInvalidBucketNameForAccelerateModeEnabled
                                                           userInfo:@{
@@ -262,7 +263,7 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
         //generate baseURL String (use virtualHostStyle if possible)
         //base url is not url encoded.
         NSString *keyPath = nil;
-        if (bucketName == nil || [bucketName aws_isVirtualHostedStyleCompliant]) {
+        if (bucketName == nil) {
             keyPath = (keyName == nil ? @"" : [NSString stringWithFormat:@"%@", [keyName aws_stringWithURLEncodingPath]]);
         } else {
             keyPath = (keyName == nil ? [NSString stringWithFormat:@"%@", bucketName] : [NSString stringWithFormat:@"%@/%@", bucketName, [keyName aws_stringWithURLEncodingPath]]);
@@ -271,8 +272,7 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
         //generate correct hostName (use virtualHostStyle if possible)
         NSString *host = nil;
         if (!self.configuration.localTestingEnabled &&
-            bucketName &&
-            [bucketName aws_isVirtualHostedStyleCompliant]) {
+            bucketName) {
             if (isAccelerateModeEnabled) {
                 host = [NSString stringWithFormat:@"%@.%@", bucketName, AWSS3PreSignedURLBuilderAcceleratedEndpoint];
             } else {
