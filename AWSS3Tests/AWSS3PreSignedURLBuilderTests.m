@@ -110,7 +110,7 @@ static NSString *testS3PresignedURLEUCentralStaticKey = @"testS3PresignedURLEUCe
         NSURL *presignedURL = task.result;
         XCTAssertNotNil(presignedURL);
         XCTAssertEqualObjects(presignedURL.host, @"localhost", @"Should be localhost");
-        XCTAssertEqual(presignedURL.port.intValue, 20005, @"Port should be matching");
+        XCTAssertEqual(presignedURL.port.intValue, 9000, @"Port should be matching");
         XCTAssertEqualObjects(presignedURL.scheme, @"http", @"Should be in http protocol for local testing");
         return nil;
     }] waitUntilFinished];

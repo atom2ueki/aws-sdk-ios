@@ -274,14 +274,7 @@ static AWSSynchronizedMutableDictionary *_serviceClients = nil;
         }
 
         //generate correct hostName (disabled virtualHostStyle here for minio server)
-        NSString *host = nil;
-        if (!self.configuration.localTestingEnabled &&
-            bucketName) {
-            host = [NSString stringWithFormat:@"%@/%@", endpoint.hostName, bucketName];
-            [getPreSignedURLRequest setValue:host forRequestHeader:@"host"];
-        } else {
-            host = endpoint.hostName;
-        }
+        NSString *host = endpoint.hostName;
         
         if (endpoint.portNumber)
         {

@@ -561,11 +561,12 @@ static NSString *const AWSServiceNameSageMakerRuntime = @"sagemaker";
     return nil;
 }
 
+// hard-coding minio default port 9000 of localhost for testing
 - (NSNumber *)portNumberForService:(AWSServiceType)serviceType
                 isLocalTestingPort:(BOOL)isLocalTestingPort {
     if (isLocalTestingPort) {
         if (serviceType == AWSServiceS3) {
-            return [NSNumber numberWithInteger:20005];
+            return [NSNumber numberWithInteger:9000];
         }
     }
     return nil;
